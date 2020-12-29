@@ -31,9 +31,8 @@ func emit(addr string) error {
 	client, err := quic.NewClient(addr)
 	if err != nil {
 		return err
-	} else {
-		log.Printf("✅ Connected to yomo-zipper %s", addr)
 	}
+	log.Printf("✅ Connected to yomo-zipper %s", addr)
 
 	// create a stream
 	stream, err := client.CreateStream(context.Background())
@@ -67,6 +66,6 @@ func generateAndSendData(stream quic.Stream) {
 			log.Printf("✅ Emit %f to yomo-zipper", randData)
 		}
 
-		time.Sleep(100)
+		time.Sleep(100 * time.Millisecond)
 	}
 }
