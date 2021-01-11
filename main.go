@@ -47,7 +47,7 @@ func emit(addr string) error {
 	return nil
 }
 
-var protoCodec = codes.NewProtoCodec(0x10)
+var codec = codes.NewProtoCodec(0x10)
 
 func generateAndSendData(stream quic.Stream) {
 	for {
@@ -56,7 +56,7 @@ func generateAndSendData(stream quic.Stream) {
 
 		// Encode data via the high performance yomo-codec.
 		// See https://github.com/yomorun/yomo-codec-golang for more information.
-		sendingBuf, _ := protoCodec.Marshal(randData)
+		sendingBuf, _ := codec.Marshal(randData)
 
 		// send data via QUIC stream.
 		_, err := stream.Write(sendingBuf)
