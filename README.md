@@ -1,8 +1,10 @@
 # yomo-source-demo
 
-The demo of `yomo-source` which sends random float32 data to `yomo-zipper` in every 100 ms.
+The demo of [yomo-source](https://yomo.run/source) which sends random float32 data to [yomo-zipper](https://yomo.run/zipper) in every 100 ms.
 
 ## How to run the demo project
+
+> Note: you need to run [yomo-zipper](https://yomo.run/zipper#how-to-config-and-run-yomo-zipper) first before running this demo project.
 
 ``` shell
 # YOMO_ZIPPER_ENDPOINT is the address of `yomo-zipper`.
@@ -38,7 +40,7 @@ if err != nil {
 }
 ```
 
-2. Encode your data via [yomo-codec](https://github.com/yomorun/yomo-codec-golang).
+2. Encode your data via [y3-codec](https://github.com/yomorun/y3-codec-golang).
 
 ```go
 protoCodec := codes.NewProtoCodec(0x10)
