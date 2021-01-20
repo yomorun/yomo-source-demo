@@ -1,10 +1,16 @@
-# yomo-source-demo
+# yomo-source-example
 
 The demo of [yomo-source](https://yomo.run/source) which sends random float32 data to [yomo-zipper](https://yomo.run/zipper) in every 100 ms.
 
 ## How to run the demo project
 
-> Note: you need to run [yomo-zipper](https://yomo.run/zipper#how-to-config-and-run-yomo-zipper) first before running this demo project.
+> **Note**: you need to run [yomo-zipper](https://yomo.run/zipper#how-to-config-and-run-yomo-zipper) first before running this demo project.
+
+### Run `yomo-zipper`
+
+In order to experience the data processing in YoMo, you can run `yomo wf run workflow.yaml` with the current example yomo-source-example as `yomo-source`. See [yomo-zipper](https://yomo.run/zipper#how-to-config-and-run-yomo-zipper) for details.
+
+### Run `yomo-source-example`
 
 ``` shell
 # YOMO_ZIPPER_ENDPOINT is the address of `yomo-zipper`.
@@ -24,7 +30,7 @@ You will see the following message:
 
 ## How to write your `yomo-source`
 
-1. Connect to `yomo-zipper` via **QUIC** and create a QUIC stream.
+1. Connect to `yomo-zipper` over **QUIC** and create a QUIC stream.
 
 ```go
 // connect to yomo-zipper via QUIC.
