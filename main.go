@@ -2,14 +2,22 @@ package main
 
 import (
 	"context"
+	"io/ioutil"
 	"log"
 	"math/rand"
+	"net/http"
 	"os"
 	"time"
 
-	"github.com/yomorun/y3-codec-golang/pkg/codes"
+	y3 "github.com/yomorun/y3-codec-golang"
 	"github.com/yomorun/yomo/pkg/quic"
 )
+
+type noiseData struct {
+	Noise float32 `yomo:"0x11"` // Noise value
+	Time  int64   `yomo:"0x12"` // Timestamp (ms)
+	From  string  `yomo:"0x13"` // Source IP
+}
 
 // the address of yomo-zipper.
 var zipperAddr = os.Getenv("YOMO_ZIPPER_ENDPOINT")
@@ -47,25 +55,49 @@ func emit(addr string) error {
 	return nil
 }
 
-var codec = codes.NewProtoCodec(0x10)
+var codec = y3.NewCodec(0x10)
 
 func generateAndSendData(stream quic.Stream) {
+	ip, _ := getIP()
+
 	for {
 		// generate random data.
-		randData := rand.New(rand.NewSource(time.Now().UnixNano())).Float32() * 200
+		data := noiseData{
+			Noise: rand.New(rand.NewSource(time.Now().UnixNano())).Float32() * 200,
+			Time:  time.Now().UnixNano() / int64(time.Millisecond),
+			From:  ip,
+		}
 
 		// Encode data via the high performance yomo-codec.
 		// See https://github.com/yomorun/yomo-codec-golang for more information.
-		sendingBuf, _ := codec.Marshal(randData)
+		sendingBuf, _ := codec.Marshal(data)
 
 		// send data via QUIC stream.
 		_, err := stream.Write(sendingBuf)
 		if err != nil {
-			log.Printf("❌ Emit %f to yomo-zipper failure with err: %v", randData, err)
+			log.Printf("❌ Emit %v to yomo-zipper failure with err: %v", data, err)
 		} else {
-			log.Printf("✅ Emit %f to yomo-zipper", randData)
+			log.Printf("✅ Emit %v to yomo-zipper", data)
 		}
 
 		time.Sleep(100 * time.Millisecond)
 	}
+}
+
+// getIP returns the public IP address.
+// https://gist.github.com/ankanch/8c8ec5aaf374039504946e7e2b2cdf7f
+func getIP() (string, error) {
+	// we are using a pulib IP API, we're using ipify here, below are some others https://www.ipify.org, http://myexternalip.com, http://api.ident.me, http://whatismyipaddress.com/api
+	url := "https://api.ipify.org?format=text"
+	log.Print("Getting IP address from ipify ...")
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", nil
+	}
+	defer resp.Body.Close()
+	ip, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", nil
+	}
+	return string(ip), nil
 }
