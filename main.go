@@ -14,9 +14,9 @@ import (
 )
 
 type noiseData struct {
-	Noise float32 `yomo:"0x11"` // Noise value
-	Time  int64   `yomo:"0x12"` // Timestamp (ms)
-	From  string  `yomo:"0x13"` // Source IP
+	Noise float32 `y3:"0x11"` // Noise value
+	Time  int64   `y3:"0x12"` // Timestamp (ms)
+	From  string  `y3:"0x13"` // Source IP
 }
 
 // the address of yomo-zipper.
