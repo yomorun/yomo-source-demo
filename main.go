@@ -1,7 +1,7 @@
 package main
 
 import (
-	"context"
+	"io"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -9,14 +9,14 @@ import (
 	"os"
 	"time"
 
-	y3 "github.com/yomorun/y3-codec-golang"
-	"github.com/yomorun/yomo/pkg/quic"
+	"github.com/yomorun/y3-codec-golang"
+	"github.com/yomorun/yomo/pkg/client"
 )
 
 type noiseData struct {
-	Noise float32 `y3:"0x11"` // Noise value
-	Time  int64   `y3:"0x12"` // Timestamp (ms)
-	From  string  `y3:"0x13"` // Source IP
+	Noise float32 `y3:"0x11" json:"noise"` // Noise value
+	Time  int64   `y3:"0x12" json:"time"` // Timestamp (ms)
+	From  string  `y3:"0x13" json:"from"` // Source IP
 }
 
 // the address of yomo-zipper.
@@ -24,7 +24,7 @@ var zipperAddr = os.Getenv("YOMO_ZIPPER_ENDPOINT")
 
 func main() {
 	if zipperAddr == "" {
-		zipperAddr = "localhost:9999"
+		zipperAddr = "localhost:9000"
 	}
 	err := emit(zipperAddr)
 	if err != nil {
@@ -35,29 +35,23 @@ func main() {
 // emit data to yomo-zipper.
 // yomo-source (your data) ---> yomo-zipper [yomo-flow (stream processing) ---> yomo-sink (to db or web page)]
 func emit(addr string) error {
-	// connect to yomo-zipper via QUIC.
-	client, err := quic.NewClient(addr)
+	// connect to yomo-zipper.
+	cli, err := client.NewSource("yomo-source").Connect("localhost", 9000)
 	if err != nil {
 		return err
 	}
 	log.Printf("✅ Connected to yomo-zipper %s", addr)
 
-	// create a stream
-	stream, err := client.CreateStream(context.Background())
-	if err != nil {
-		return err
-	}
-
 	// generate mock data and send it to yomo-zipper in every 100 ms.
 	// you can change the following codes to fit your business.
-	generateAndSendData(stream)
+	generateAndSendData(cli)
 
 	return nil
 }
 
 var codec = y3.NewCodec(0x10)
 
-func generateAndSendData(stream quic.Stream) {
+func generateAndSendData(stream io.Writer) {
 	ip, _ := getIP()
 
 	for {
