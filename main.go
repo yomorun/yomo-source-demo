@@ -1,12 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/yomorun/y3-codec-golang"
@@ -15,8 +18,8 @@ import (
 
 type noiseData struct {
 	Noise float32 `y3:"0x11" json:"noise"` // Noise value
-	Time  int64   `y3:"0x12" json:"time"` // Timestamp (ms)
-	From  string  `y3:"0x13" json:"from"` // Source IP
+	Time  int64   `y3:"0x12" json:"time"`  // Timestamp (ms)
+	From  string  `y3:"0x13" json:"from"`  // Source IP
 }
 
 // the address of yomo-zipper.
@@ -33,14 +36,21 @@ func main() {
 }
 
 // emit data to yomo-zipper.
-// yomo-source (your data) ---> yomo-zipper [yomo-flow (stream processing) ---> yomo-sink (to db or web page)]
+// yomo-source (your data) ---> yomo-zipper ---> yomo-flow (stream processing) ---> yomo-sink (to db or web page)
 func emit(addr string) error {
 	// connect to yomo-zipper.
-	cli, err := client.NewSource("yomo-source").Connect("localhost", 9000)
+	urls := strings.Split(addr, ":")
+	if len(urls) != 2 {
+		return fmt.Errorf(`❌ The format of url "%s" is incorrect, it should be "host:port", f.e. localhost:9000`, addr)
+	}
+	host := urls[0]
+	port, _ := strconv.Atoi(urls[1])
+	cli, err := client.NewSource("yomo-source").Connect(host, port)
 	if err != nil {
 		return err
 	}
 	log.Printf("✅ Connected to yomo-zipper %s", addr)
+	defer cli.Close()
 
 	// generate mock data and send it to yomo-zipper in every 100 ms.
 	// you can change the following codes to fit your business.
