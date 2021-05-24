@@ -30,33 +30,24 @@ You will see the following message:
 
 ## How to write your `yomo-source`
 
-1. Connect to `yomo-zipper` over **QUIC** and create a QUIC stream.
+1. Connect to `yomo-zipper`.
 
 ```go
-// connect to yomo-zipper via QUIC.
-client, err := quic.NewClient(zipper)
-if err != nil {
-  return err
-}
-
-// create a stream
-stream, err := client.CreateStream(context.Background())
-if err != nil {
-  return err
-}
+// connect to yomo-zipper
+cli, err := client.NewSource("yomo-source").Connect("localhost", 9000)
 ```
 
 2. Encode your data via [y3-codec](https://github.com/yomorun/y3-codec-golang).
 
 ```go
-protoCodec := codes.NewProtoCodec(0x10)
-sendingBuf, _ := protoCodec.Marshal(randData)
+codec := y3.NewCodec(0x10)
+sendingBuf, _ := codec.Marshal(randData)
 ```
 
-3. Send data to `yomo-zipper` via **QUIC stream**.
+3. Send data to `yomo-zipper` via client.
 
 ```go
-_, err := stream.Write(sendingBuf)
+_, err := cli.Write(sendingBuf)
 ```
 
 ## How `yomo-source` and `yomo-zipper` work
